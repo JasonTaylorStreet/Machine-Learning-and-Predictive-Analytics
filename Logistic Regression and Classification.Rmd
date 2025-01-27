@@ -1,0 +1,78 @@
+---
+title: "Regression Analysis on Weekly Market Performance (M3)"
+author: "Jason Street"
+date: "2025-01-20"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+```
+
+### Load in Data
+```{r}
+# read in Weekly.csv ensuring working directory
+#   setwd("C:/Users/jasst/BUAD5122A1_class_files/Assignments/M3")
+weekly_data <- read.csv("Weekly.csv")
+```
+
+### Use the Weekly dataset to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?
+```{r}
+# convret Direction (response) to a factor 
+weekly_data$Direction <- as.factor(weekly_data$Direction) 
+
+# perform logistic regression (all Lag and Volume as predictors)
+logistic_model_full <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
+                        data = weekly_data, family = binomial) 
+
+# model summary
+summary(logistic_model_full)
+```
+
+#### Only Lag2 is statistically significant (p<0.05), suggesting it may have predictive power, while the other predictors are not significant.
+
+### Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.
+```{r}
+# predict probabilities and convert to class predictions 
+predicted_full <- predict(logistic_model_full, type = "response") 
+predicted_classes <- ifelse(predicted_full > 0.5, "Up", "Down") 
+
+# confusion matrix 
+confusion_mat_full <- table(Predicted = predicted_classes, Actual = weekly_data$Direction) 
+
+# accuracy 
+accuracy_full <- sum(diag(confusion_mat_full)) / sum(confusion_mat_full) 
+print(confusion_mat_full) 
+print(paste("Accuracy:", round(accuracy_full, 4))) 
+```
+
+#### The confusion matrix indicates that the model predicted a high number of "Up" values correctly (557 vs 48) and fewer "Down" values correctly (54 vs 430), leading to a relatively poor overall accuracy of 56.11%, which may be suggesting possible bias when predicting "Up" and lacking in the detecting of market downturns. 
+
+### Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).
+```{r}
+# split the data into training (1990-2008) and testing (2009-2010) 
+train_data <- subset(weekly_data, Year <= 2008) 
+test_data <- subset(weekly_data, Year > 2008) 
+
+# fit model using only Lag2 
+logistic_model_train <- glm(Direction ~ Lag2, data = train_data, family = binomial) 
+
+# model summary
+summary(logistic_model_train)
+
+# test data predictions
+test_predictions <- predict(logistic_model_train, test_data, type = "response") 
+test_predicted_classes <- ifelse(test_predictions > 0.5, "Up", "Down") 
+
+# test data confusion matrix 
+confusion_mat_test <- table(Predicted = test_predicted_classes, Actual = test_data$Direction) 
+
+# accuracy 
+accuracy_test <- sum(diag(confusion_mat_test)) / sum(confusion_mat_test) 
+print(confusion_mat_test) 
+print(paste("Accuracy:", round(accuracy_test, 4)))
+```
+
+#### The model shows Lag2 is still statistically significant (p<0.05), implying it has predictive capability. The test confusion matrix shows that the model achieved an improved accuracy of 62.5%, but the model still struggles with predicting "Down" values (34 type 1 errors).

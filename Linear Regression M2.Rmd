@@ -1,0 +1,96 @@
+---
+title: "Carseats Regression Analysis"
+author: "Jason Street"
+date: "2025-01-12"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+### Load in Data
+
+```{r}
+# read in Carseats.csv ensuring working directory
+#   setwd("C:/Users/jasst/BUAD5122A1_class_files/Assignments/M2")
+carseats <- read.csv("Carseats.csv")
+```
+
+### Use the lm() function to perform a simple linear regression with Sales as the response and Price as the predictor. Use the summary() function to print the results. Comment on the output in terms of: Is there a relationship between Sales and Price? If so, is the relationship positive or negative, how strong is the relationship?
+```{r}
+# linear regression: predictor = Price, response = Sales)
+simple_model <- lm(Sales ~ Price, data = carseats)
+
+# regression model summary
+summary(simple_model)
+```
+
+There is an inverse relationship between Price and Sale as can be seen with the negative coefficient of Price, with almost 20% of the variability explained by Price and its p-value of <0.05 indicating it's statistically significant.
+
+### Use the lm() function to perform a multi-linear regression with Sales as the response and CompPrice, Income, Advertising, Population, Price, Age, and Education as potential predictors. You may want to try different combinations of the variables to check the significance of the model and significance of the predictor variables. Are all these predictors significant? If not, which of them are significant? Why?
+```{r}
+# multiple linear regression (predictors = CompPrice, Income, Advertising, Population, Price, Age, and Education; response = Sales)
+multi_model_1 <- lm(Sales ~ CompPrice + Income + Advertising + Population + Price + Age + Education, data = carseats)
+
+# removed Population and Education as predictors
+multi_model_2 <- lm(Sales ~ CompPrice + Income + Advertising + Price + Age, data = carseats)
+
+# removed Age as Predictor
+multi_model_3 <- lm(Sales ~ CompPrice + Advertising + Price, data = carseats)
+
+# multi regression model summary
+summary(multi_model_1)
+summary(multi_model_2)
+summary(multi_model_3)
+```
+
+#### Model 1
+CompPrice, Income, Advertising, Price, and Age were statistically significant in their relationship with Sales (p<0.05).
+Population (p = 0.857) and Education (p = 0.282) were not significant contributers in predicting sales.
+Approximately 53% of the variability in Sales can be explained by this model.
+
+#### Model 2
+After removing Population and Education, the remaining predictors remained statistically significant (p<0.05).
+There was slight improvement in model fit compared to Model 1 but still remains approximately 53%, and since the model retained predictive power while being simpler, it supports that Population and Education were not contributing meaningfully to predicting Sales.
+
+#### Model 3
+After removing Age, there was no change in the fact that remaining predictors are statistically significant (p<0.05).
+Approximately 45% in variability explained in this model, a reduction in model fit meaning Model 2 is better.
+
+### Use the lm() function to perform a multi-linear regression with Sales as the response and Price, Urban, and US as predictor variables. Note that dummy variables are needed for the categorical variables Urban, and US. Are all these three significant, Why?
+```{r}
+# convert categorical vars to factors
+carseats$Urban <- as.factor(carseats$Urban)
+carseats$US <- as.factor(carseats$US)
+
+# multiple linear regression (predictors = Price, Urban, and US; response = Sales)
+multi_model_4 <- lm(Sales ~ Price + Urban + US, data = carseats)
+
+# multi regression model summary
+summary(multi_model_4)
+```
+
+Price remained consistent with previous models, that is statistically significant inverse relationship. Additionally, US is a statistically significant (p<0.05) positive relationship, so if in the US, Sales will be higher. However, Urban is not significant (p=0.936), meaning urban vs rural on store location does not have a meaningful impact on sales.
+
+### Use the lm() function to perform a multi-linear regression with Sales as the response and CompPrice, Income, Advertising, Population, Price, Age, and Education as potential quantitative predictors and Urban, and US as categorical variables. Note that dummy variables are needed for the categorical variables. You may want to try different combinations of the variables to check the significance of the model and significance of the predictor variables. Are all these predictors significant? If not, which of them are significant? Why?
+```{r}
+# regression model with all predictors
+multi_model_5 <- lm(Sales ~ CompPrice + Income + Advertising + Population + Price + Age + Education + Urban + US, data = carseats)
+
+# removed Population, Education, and Urban (kept US as it was significant in previous model)
+multi_model_6 <- lm(Sales ~ CompPrice + Income + Advertising + Price + Age + US, data = carseats)
+
+# summary of model
+summary(multi_model_5)
+summary(multi_model_6)
+```
+
+#### Model 5
+CompPrice, Income, Advertising, Price, and Age were statistically significant in their relationship with Sales (p<0.05).  
+Population (p=0.775), Education (p=0.258), Urban (p=0.465), and US (p=0.708) were not significant contributors in predicting sales as compared to the other predictors.  
+Approximately 53% of the variability in Sales can be explained by this model, suggesting that the inclusion of these not significant predictors does not result in enhancing predictability of Sales. 
+
+#### Model 6
+After removing Population, Education, and Urban, and keeping US due to its previous significance, we see that when compared to the quantitative variables, the US predictor remains not significant. This means that Model 2 from above is the best at predicting sales while maintaining the model simple enough.  
