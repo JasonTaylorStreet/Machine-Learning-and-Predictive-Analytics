@@ -1,1 +1,2 @@
 # Machine-Learning-and-Predictive-Analytics
+This course is designed to provide students with a deep understanding of the theory and practice of supervised and unsupervised learning, including regression, classification, and clustering. An important part of this course is the use of statistical software, which is used extensively in labs and assignments in this class and may reappear in other classes throughout the program.
